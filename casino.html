@@ -62,20 +62,187 @@
         </select>
         <input type="number" id="adminGradeInput" placeholder="Introdu nota" min="1" max="10">
         <button onclick="saveGrade()">Salvează Nota</button>
-        <h3>Dezactivează pariurile pentru o materie:</h3>
-        <select id="disableSubjectSelect">
-          <option value="">Selectează materia</option>
-          <option value="Română">Română</option>
-          <option value="Matematică">Matematică</option>
-          <option value="Fizică">Fizică</option>
-          <option value="Geografie">Geografie</option>
-        </select>
-        <button onclick="toggleBets()">Dezactivează/Activează Pariuri</button>
         <button class="back-button" onclick="exitAdmin()">Ieși din Administrare</button>
       </div>
     </div>
-    <div class="premium-shop">
-      <button class="premium-button" onclick="location.href='magazin.html'">SHOP PREMIUM</button>
+  </div>
+
+<script>
+  const userName = localStorage.getItem("userName")||"Anonim";
+  const allStudents = ["Itcus Delia","Burciu Gabriela","Tomoiaga Cezar","Hrecica Petrisor","Salvar Calin","Salvar Rares","Craciun Claudiu","Oniga Adelin"];
+  const adminUsers = ["Hrecica Petrisor"];
+  const adminPassword = "hhhjjjkkk111";
+
+  let balance = parseInt(localStorage.getItem(`${userName}_balance`)) || 1000;
+  let bets = JSON.parse(localStorage.getItem(`${userName}_bets`)) || [];
+  let studentGrades = {};
+  let leaderboard = JSON.parse(localStorage.getItem('leaderboard'))||{};
+  let blockedSubjects = {}; // pentru dezactivare materii
+
+  document.getElementById("welcomeMessage").textContent = `Salut ${userName}, azi e o zi frumoasă de jucat la cazinou!`;
+  document.getElementById("balance").textContent = balance;
+  const adminStudentSelect = document.getElementById("adminStudentSelect");
+  allStudents.forEach(s=>{ adminStudentSelect.innerHTML += `<option value="${s}">${s}</option>` });
+  if(adminUsers.includes(userName)) document.getElementById("adminSection").style.display="block";
+  updateLeaderboard();
+  renderBetSection();
+  updateBetHistory();
+
+  function logout(){ localStorage.removeItem("userName"); }
+
+  function showNotification(msg,isSuccess){
+    const n=document.getElementById("notification");
+    n.textContent=msg;
+    n.style.borderColor=isSuccess?"#00ff00":"#ff0000";
+    n.style.display="block";
+    setTimeout(()=>{ n.style.display="none"; },3000);
+  }
+
+  function updateLeaderboard(){
+    if(!leaderboard[userName]) leaderboard[userName]=balance;
+    localStorage.setItem('leaderboard',JSON.stringify(leaderboard));
+    const list=document.getElementById("leaderboardList");
+    list.innerHTML="";
+    Object.entries(leaderboard).sort((a,b)=>b[1]-a[1]).forEach(([player,pts],i)=>{
+      const li=document.createElement('li');
+      li.innerHTML=`${i+1}. ${player}: ${pts}p`;
+      if(player===userName) li.classList.add('you');
+      list.appendChild(li);
+    });
+  }
+
+  function saveData(){
+    localStorage.setItem(`${userName}_balance`, balance);
+    localStorage.setItem(`${userName}_bets`, JSON.stringify(bets));
+    leaderboard[userName] = balance;
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    updateLeaderboard();
+  }
+
+  // --- Admin ---
+  function accessAdmin(){
+    const pw=document.getElementById("adminPassword").value;
+    if(pw===adminPassword) document.getElementById("adminContent").style.display="block";
+    else alert("Parolă incorectă!");
+  }
+  function exitAdmin(){ document.getElementById("adminContent").style.display="none"; }
+
+  function saveGrade(){
+    const student=document.getElementById("adminStudentSelect").value;
+    const subject=document.getElementById("adminSubjectSelect").value;
+    const grade=parseInt(document.getElementById("adminGradeInput").value);
+    if(!student){ alert("Selectează un elev!"); return; }
+    if(!studentGrades[student]) studentGrades[student]={};
+    studentGrades[student][subject]=grade;
+    alert(`Nota pentru ${student} la ${subject} a fost setată la ${grade}.`);
+    checkBetsForStudent(student,subject,grade);
+  }
+
+  // --- Pariuri ---
+  function placeBet(type){
+    const betAmount=parseInt(document.getElementById("betAmountInput").value)||100;
+    const student=document.getElementById("studentSelect").value;
+    const subject=document.getElementById("subjectSelect").value;
+    if(blockedSubjects[subject]){ alert("Pariurile pentru această materie sunt dezactivate."); return; }
+    if(balance<betAmount){ alert("Nu ai suficiente puncte!"); return; }
+
+    // Verificare dacă există pariu pe același elev la aceeași materie
+    if(bets.some(b => b.student===student && b.subject===subject)){
+      alert("Ai pariat deja pe acest elev la această materie!");
+      return;
+    }
+
+    let bet={type,betAmount,checked:false,user:userName,student,subject};
+    if(type==="nota-fixa") bet.grade=parseInt(document.getElementById("gradeInput").value);
+    else bet.overUnder=document.getElementById("overUnderSelect").value;
+
+    balance-=betAmount;
+    updateBalance();
+    bet.timestamp=new Date().toLocaleString();
+    bets.push(bet);
+    updateBetHistory();
+    saveData();
+    alert("Pariu plasat cu succes! Așteaptă rezultatele.");
+  }
+
+  function updateBalance(){ 
+    document.getElementById("balance").textContent=balance; 
+    saveData();
+  }
+
+  function updateBetHistory(){
+    const list=document.getElementById("betList"); list.innerHTML="";
+    bets.forEach((b,i)=>{
+      let li=document.createElement("li");
+      let desc=`${i+1}. ${b.student} - ${b.subject} - `;
+      desc+=b.type==="nota-fixa"?`Nota ${b.grade}`:(b.overUnder==="peste"?"Peste 5":"Sub 5");
+      desc+=` (${b.betAmount}p)`;
+      let result="";
+      if(b.checked){
+        const act=b.actualGrade;
+        const win=b.type==="nota-fixa"? act===b.grade : (b.overUnder==="peste"?act>5:act<5);
+        const amt=b.type==="nota-fixa"?b.betAmount*2:Math.floor(b.betAmount*1.3);
+        result=`<div class="bet-info ${win?'win':'loss'}">${b.student} a primit nota ${act} — ${win?`Câștig: ${amt}p`:`Pierdut: ${b.betAmount}p`}</div>`;
+      }else result=`<div class="bet-info">În așteptarea rezultatului...</div>`;
+      li.innerHTML=`<strong>${desc}</strong><div class="timestamp">${b.timestamp}</div>${result}`;
+      list.appendChild(li);
+    });
+  }
+
+  function checkBetsForStudent(student,subject,grade){
+    bets.forEach(bet=>{
+      if(bet.student===student && bet.subject===subject && !bet.checked){
+        let win=false;
+        let payout=0;
+        if(bet.type==="nota-fixa"){
+          if(bet.grade===grade){ win=true; payout=bet.betAmount*2; }
+        } else {
+          if((bet.overUnder==="peste" && grade>5)||(bet.overUnder==="sub" && grade<5)){ win=true; payout=Math.floor(bet.betAmount*1.3); }
+        }
+        if(win){
+          balance+=payout;
+          showNotification(`🎉 ${student} a primit nota ${grade}! Ai câștigat ${payout} puncte.`,true);
+        } else {
+          showNotification(`❌ ${student} a primit nota ${grade}. Ai pierdut ${bet.betAmount} puncte.`,false);
+        }
+        bet.checked=true;
+        bet.actualGrade=grade;
+      }
+    });
+    updateBalance();
+    updateBetHistory();
+    saveData();
+  }
+
+  function renderBetSection(){
+    const section=document.getElementById("betSection");
+    section.innerHTML=`<h2>Alege tipul de pariu:</h2>
+    <button onclick="selectBetType('nota-fixa')">Pariu pe Notă Fixă</button>
+    <button onclick="selectBetType('peste-sub')">Pariu pe Peste/Sub Notă</button>`;
+  }
+
+  function selectBetType(type){
+    const section=document.getElementById("betSection");
+    let html=`<h2>${type==='nota-fixa'?'Pariu pe Notă Fixă':'Pariu pe Peste/Sub Notă'}</h2>
+      <select id="studentSelect">`+allStudents.map(s=>`<option value="${s}">${s}</option>`).join('')+`</select>
+      <select id="subjectSelect">
+        <option value="Română">Română</option>
+        <option value="Matematică">Matematică</option>
+        <option value="Fizică">Fizică</option>
+        <option value="Geografie">Geografie</option>
+      </select>`;
+    if(type==="nota-fixa") html+=`<input type="number" id="gradeInput" placeholder="Introdu nota" min="1" max="10">
+      <input type="number" id="betAmountInput" placeholder="Suma de pariat" min="10" max="${balance}" value="100">
+      <button onclick="placeBet('${type}')">Pariază</button>`;
+    else html+=`<select id="overUnderSelect"><option value="peste">Peste 5</option><option value="sub">Sub 5</option></select>
+      <input type="number" id="betAmountInput" placeholder="Suma de pariat" min="10" max="${balance}" value="100">
+      <button onclick="placeBet('${type}')">Pariază</button>`;
+    html+=`<button class="back-button" onclick="renderBetSection()">Înapoi la Meniu</button>`;
+    section.innerHTML=html;
+  }
+</script>
+</body>
+</html>      <button class="premium-button" onclick="location.href='magazin.html'">SHOP PREMIUM</button>
     </div>
   </div>
 
