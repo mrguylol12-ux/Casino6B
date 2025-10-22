@@ -62,6 +62,174 @@
         </select>
         <input type="number" id="adminGradeInput" placeholder="Introdu nota" min="1" max="10">
         <button onclick="saveGrade()">Salvează Nota</button>
+        <button onclick="resetBlockedBets()">Resetează pariuri blocate</button>
+        <button class="back-button" onclick="exitAdmin()">Ieși din Administrare</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ==========================
+  const allStudents = ["Itcus Delia","Burciu Gabriela","Tomoiaga Cezar","Hrecica Petrisor","Salvar Călin","Salvar Rares","Craciun Claudiu","Oniga Adelin"];
+  const adminUsers = ["Hrecica Petrisor"];
+  const adminPassword = "hhhjjjkkk111";
+
+  let userName = localStorage.getItem("userName") || "Anonim";
+  let balance = parseInt(localStorage.getItem("userPoints")) || 1000;
+  let bets = JSON.parse(localStorage.getItem("bets")) || [];
+  let blockedSubjects = JSON.parse(localStorage.getItem("blockedSubjects")) || {};
+
+  document.getElementById("welcomeMessage").textContent = `Salut ${userName}, azi e o zi frumoasă de jucat la cazinou!`;
+  document.getElementById("balance").textContent = balance;
+
+  const adminStudentSelect = document.getElementById("adminStudentSelect");
+  allStudents.forEach(s => adminStudentSelect.innerHTML += `<option value="${s}">${s}</option>`);
+  if(adminUsers.includes(userName)) document.getElementById("adminSection").style.display="block";
+
+  renderBetSection();
+  updateBetHistory();
+
+  // ==========================
+  function logout(){ localStorage.removeItem("userName"); }
+
+  function updateBalance() {
+    document.getElementById("balance").textContent = balance;
+    localStorage.setItem("userPoints", balance);
+  }
+
+  function saveData(){
+    localStorage.setItem("userPoints", balance);
+    localStorage.setItem("bets", JSON.stringify(bets));
+    localStorage.setItem("blockedSubjects", JSON.stringify(blockedSubjects));
+  }
+
+  function placeBet(type){
+    const student = document.getElementById("studentSelect").value;
+    const subject = document.getElementById("subjectSelect").value;
+    const betAmount = parseInt(document.getElementById("betAmountInput").value) || 100;
+
+    if(balance < betAmount){ alert("Nu ai suficiente puncte!"); return; }
+    if(blockedSubjects[`${student}_${subject}`]) { alert("Ai pariat deja pe acest elev la această materie!"); return; }
+
+    let bet = {type, betAmount, checked:false, user:userName, student, subject};
+    if(type==="nota-fixa") bet.grade = parseInt(document.getElementById("gradeInput").value);
+    else bet.overUnder = document.getElementById("overUnderSelect").value;
+
+    balance -= betAmount;
+    updateBalance();
+
+    bet.timestamp = new Date().toLocaleString();
+    bets.push(bet);
+
+    blockedSubjects[`${student}_${subject}`] = true;
+    saveData();
+    updateBetHistory();
+
+    alert(`${userName} a pariat ${betAmount} puncte pe ${student} la ${subject}`);
+  }
+
+  function updateBetHistory(){
+    const list = document.getElementById("betList");
+    list.innerHTML = "";
+    bets.forEach((b,i)=>{
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${b.user}</strong> a pariat <strong>${b.betAmount}p</strong> pe <strong>${b.student}</strong> la <strong>${b.subject}</strong> ${b.checked?"✅":"⏳"}`;
+      list.appendChild(li);
+    });
+  }
+
+  function renderBetSection(){
+    const section=document.getElementById("betSection");
+    section.innerHTML=`<h2>Alege tipul de pariu:</h2>
+      <button onclick="selectBetType('nota-fixa')">Pariu pe Notă Fixă</button>
+      <button onclick="selectBetType('peste-sub')">Pariu pe Peste/Sub Notă</button>`;
+  }
+
+  function selectBetType(type){
+    const section=document.getElementById("betSection");
+    let html=`<h2>${type==='nota-fixa'?'Pariu pe Notă Fixă':'Pariu pe Peste/Sub Notă'}</h2>
+      <select id="studentSelect">`+allStudents.map(s=>`<option value="${s}">${s}</option>`).join('')+`</select>
+      <select id="subjectSelect">
+        <option value="Română">Română</option>
+        <option value="Matematică">Matematică</option>
+        <option value="Geografie">Geografie</option>
+      </select>`;
+    if(type==="nota-fixa") html+=`<input type="number" id="gradeInput" placeholder="Introdu nota" min="1" max="10">
+      <input type="number" id="betAmountInput" placeholder="Suma de pariat" min="10" max="${balance}" value="100">
+      <button onclick="placeBet('${type}')">Pariază</button>`;
+    else html+=`<select id="overUnderSelect"><option value="peste">Peste 5</option><option value="sub">Sub 5</option></select>
+      <input type="number" id="betAmountInput" placeholder="Suma de pariat" min="10" max="${balance}" value="100">
+      <button onclick="placeBet('${type}')">Pariază</button>`;
+    html+=`<button class="back-button" onclick="renderBetSection()">Înapoi la Meniu</button>`;
+    section.innerHTML=html;
+  }
+
+  // ==========================
+  // ADMIN
+  function accessAdmin(){
+    const pw=document.getElementById("adminPassword").value;
+    if(pw===adminPassword) document.getElementById("adminContent").style.display="block";
+    else alert("Parolă incorectă!");
+  }
+  function exitAdmin(){ document.getElementById("adminContent").style.display="none"; }
+  function saveGrade(){
+    const student=document.getElementById("adminStudentSelect").value;
+    const subject=document.getElementById("adminSubjectSelect").value;
+    const grade=parseInt(document.getElementById("adminGradeInput").value);
+    if(!student){ alert("Selectează un elev!"); return; }
+    bets.forEach(bet=>{
+      if(bet.student===student && bet.subject===subject && !bet.checked){
+        if(bet.type==="nota-fixa" && bet.grade===grade){
+          balance += bet.betAmount*2;
+        } else if(bet.type!=="nota-fixa"){
+          if((bet.overUnder==="peste" && grade>5) || (bet.overUnder==="sub" && grade<5)){
+            balance += Math.round(bet.betAmount*1.3);
+          }
+        }
+        bet.checked = true;
+      }
+    });
+    updateBalance();
+    saveData();
+    updateBetHistory();
+    alert(`${student} a primit nota ${grade}. Pariurile verificate.`);
+  }
+
+  function resetBlockedBets(){
+    blockedSubjects = {};
+    saveData();
+    alert("Toți elevii pot paria din nou!");
+  }
+</script>
+</body>
+</html>    <button class="logout-button" onclick="logout()">Deconectare</button>
+  </div>
+  <div class="container">
+    <p class="balance">Soldul tău: <span id="balance">1000</span> puncte</p>
+    <div id="betSection"></div>
+    <div class="bet-history">
+      <h2>Istoric Pariuri:</h2>
+      <ul id="betList"></ul>
+    </div>
+    <div class="leaderboard">
+      <h2>Clasament</h2>
+      <ol id="leaderboardList"></ol>
+    </div>
+    <div class="admin-section" id="adminSection" style="display:none;">
+      <h2>Administrare Note</h2>
+      <input type="password" id="adminPassword" placeholder="Introdu parola">
+      <button onclick="accessAdmin()">Accesează Administrarea</button>
+      <div id="adminContent" style="display:none;">
+        <h3>Introdu notele elevilor:</h3>
+        <select id="adminStudentSelect"><option value="">Selectează elevul</option></select>
+        <select id="adminSubjectSelect">
+          <option value="Română">Română</option>
+          <option value="Matematică">Matematică</option>
+          <option value="Fizică">Fizică</option>
+          <option value="Geografie">Geografie</option>
+        </select>
+        <input type="number" id="adminGradeInput" placeholder="Introdu nota" min="1" max="10">
+        <button onclick="saveGrade()">Salvează Nota</button>
         <button class="back-button" onclick="exitAdmin()">Ieși din Administrare</button>
       </div>
     </div>
