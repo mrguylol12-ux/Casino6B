@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cazinoul 6B</title>
+  <style>
+    body { font-family: Arial,sans-serif; background: linear-gradient(135deg,#1a1a1a,#333); color:white; margin:0; padding:0; }
+    .header { background: rgba(0,0,0,0.8); padding:1rem; display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #ffd700; }
+    .header h2 { color:#ffd700; margin:0; }
+    .container { padding:2rem; max-width:800px; margin:0 auto; }
+    .balance { font-size:1.2rem; margin-bottom:20px; }
+    .balance span { font-weight:bold; color:#ffd700; }
+    select,input[type="number"],input[type="password"],button { width:100%; padding:10px; margin:10px 0; border:2px solid #ffd700; border-radius:5px; background:#333; color:white; font-size:1rem; }
+    button { background:#ffd700; color:#1a1a1a; cursor:pointer; transition: background 0.3s, transform 0.2s; }
+    button:hover { background:#ffcc00; transform:scale(1.05); }
+    .bet-history { margin-top:30px; }
+    .bet-history h2 { color:#ffd700; }
+    .bet-history ul { list-style:none; padding:0; }
+    .bet-history li { background:rgba(255,215,0,0.1); padding:10px; border:1px solid #ffd700; border-radius:5px; margin-bottom:10px; }
+    .timestamp { font-size:0.9rem; color:#ccc; }
+    .back-button { margin-top:10px; background:#6200ea; color:white; }
+    .back-button:hover { background:#3700b3; }
+    .admin-section { margin-top:30px; padding:20px; background: rgba(0,0,0,0.5); border-radius:10px; border:2px solid #ffd700; }
+    .admin-section h2 { color:#ffd700; }
+    .admin-section input[type="password"] { margin-bottom:10px; }
+    .admin-section button { margin-top:10px; }
+    .bet-info { font-size:0.9rem; margin-top:5px; }
+    .bet-info.win { color:#00ff00; }
+    .bet-info.loss { color:#ff0000; }
+    .notification { position: fixed; top:20px; left:50%; transform:translateX(-50%); background: rgba(0,0,0,0.8); padding:15px; border-radius:5px; border:2px solid #ffd700; z-index:1001; display:none; }
+  </style>
+</head>
+<body>
+  <div class="notification" id="notification"></div>
+  <div class="header">
+    <h2 id="welcomeMessage">Salut (Nume), azi e o zi frumoasă de jucat la cazinou!</h2>
+    <button class="logout-button" onclick="logout()">Deconectare</button>
+  </div>
+  <div class="container">
+    <p class="balance">Soldul tău: <span id="balance">1000</span> puncte</p>
+    <div id="betSection"></div>
+    <div class="bet-history">
+      <h2>Istoric Pariuri:</h2>
+      <ul id="betList"></ul>
+    </div>
+    <div class="leaderboard">
+      <h2>Clasament</h2>
+      <ol id="leaderboardList"></ol>
+    </div>
+    <div class="admin-section" id="adminSection" style="display:none;">
+      <h2>Administrare Note</h2>
+      <input type="password" id="adminPassword" placeholder="Introdu parola">
+      <button onclick="accessAdmin()">Accesează Administrarea</button>
+      <div id="adminContent" style="display:none;">
+        <h3>Introdu notele elevilor:</h3>
+        <select id="adminStudentSelect"><option value="">Selectează elevul</option></select>
+        <select id="adminSubjectSelect">
+          <option value="Română">Română</option>
+          <option value="Matematică">Matematică</option>
+          <option value="Fizică">Fizică</option>
+          <option value="Geografie">Geografie</option>
+        </select>
+        <input type="number" id="adminGradeInput" placeholder="Introdu nota" min="1" max="10">
+        <button onclick="saveGrade()">Salvează Nota</button>
+        <h3>Dezactivează pariurile pentru o materie:</h3>
+        <select id="disableSubjectSelect">
+          <option value="">Selectează materia</option>
+          <option value="Română">Română</option>
+          <option value="Matematică">Matematică</option>
+          <option value="Fizică">Fizică</option>
+          <option value="Geografie">Geografie</option>
+        </select>
+        <button onclick="toggleBets()">Dezactivează/Activează Pariuri</button>
+        <button class="back-button" onclick="exitAdmin()">Ieși din Administrare</button>
+      </div>
+    </div>
+    <div class="premium-shop">
+      <button class="premium-button" onclick="location.href='magazin.html'">SHOP PREMIUM</button>
+    </div>
+  </div>
+
+<script>
+const userName = localStorage.getItem("userName") || "Anonim";
+const allStudents = ["Itcus Delia","Burciu Gabriela","Tomoiaga Cezar","Hrecica Petrisor","Salvar Rares","Salvar Calin","Oniga Adelin","Craciun Claudiu"];
+const adminUsers = ["Hrecica Petrisor"];
+const adminPassword = "hhhjjjkkk111";
+
+let balance = parseInt(localStorage.getItem(`${userName}_balance`)) || 1000;
+let bets = JSON.parse(localStorage.getItem(`${userName}_bets`)) || [];
+let studentGrades = {};
+let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
+let disabledSubjects = JSON.parse(localStorage.getItem('disabledSubjects')) || {};
+
+document.getElementById("welcomeMessage").textContent = `Salut ${userName}, azi e o zi frumoasă de jucat la cazinou!`;
+document.getElementById("balance").textContent = balance;
+
+const adminStudentSelect = document.getElementById("adminStudentSelect");
+allStudents.forEach(s => { adminStudentSelect.innerHTML += `<option value="${s}">${s}</option>`; });
+
+if(adminUsers.includes(userName)) document.getElementById("adminSection").style.display="block";
+updateLeaderboard();
+renderBetSection();
+
+function logout(){ saveUserData(); localStorage.removeItem("userName"); }
+function saveUserData(){ 
+  localStorage.setItem(`${userName}_balance`, balance); 
+  localStorage.setItem(`${userName}_bets`, JSON.stringify(bets)); 
+  localStorage.setItem('leaderboard', JSON.stringify(leaderboard)); 
+  localStorage.setItem('disabledSubjects', JSON.stringify(disabledSubjects));
+}
+
+function showNotification(msg,isSuccess){
+  const n = document.getElementById("notification");
+  n.textContent = msg;
+  n.style.borderColor = isSuccess?"#00ff00":"#ff0000";
+  n.style.display = "block";
+  setTimeout(()=>{ n.style.display="none"; },3000);
+}
+
+function updateLeaderboard(){
+  if(!leaderboard[userName]) leaderboard[userName] = 0;
+  localStorage.setItem('leaderboard',JSON.stringify(leaderboard));
+  const list = document.getElementById("leaderboardList"); list.innerHTML="";
+  Object.entries(leaderboard).sort((a,b)=>b[1]-a[1]).forEach(([player,pts],i)=>{
+    const li = document.createElement('li'); li.innerHTML = `${i+1}. ${player}: ${pts}p`; if(player===userName) li.classList.add('you'); list.appendChild(li);
+  });
+}
+
+// Admin
+function accessAdmin(){
+  const pw = document.getElementById("adminPassword").value;
+  if(pw===adminPassword) document.getElementById("adminContent").style.display="block";
+  else alert("Parolă incorectă!");
+}
+function exitAdmin(){ document.getElementById("adminContent").style.display="none"; checkBetsAfterAdmin(); }
+
+function saveGrade(){
+  const student = document.getElementById("adminStudentSelect").value;
+  const subject = document.getElementById("adminSubjectSelect").value;
+  const grade = parseInt(document.getElementById("adminGradeInput").value);
+  if(!student){ alert("Selectează un elev!"); return; }
+  if(!studentGrades[student]) studentGrades[student] = {};
+  studentGrades[student][subject] = grade;
+  alert(`Nota pentru ${student} la ${subject} a fost setată la ${grade}.`);
+  checkBetsAfterAdmin();
+}
+
+// Dezactivare pariuri
+function toggleBets(){
+  const subject = document.getElementById("disableSubjectSelect").value;
+  if(!subject){ alert("Selectează o materie!"); return; }
+  disabledSubjects[subject] = !disabledSubjects[subject];
+  showNotification(`${subject} pariurile sunt ${disabledSubjects[subject]?"dezactivate":"activate"}`,true);
+  saveUserData();
+}
+
+// Pariuri
+function checkBetsAfterAdmin(){
+  bets.forEach(bet=>{
+    if(!bet.checked){
+      const g = studentGrades[bet.student]?studentGrades[bet.student][bet.subject]:null;
+      if(g!==null){
+        bet.checked = true;
+        bet.actualGrade = g;
+        let win = 0;
+        if(bet.type === "nota-fixa" && g===bet.grade) win = bet.betAmount*2;
+        else if(bet.type==="peste-sub"){
+          if((bet.overUnder==="peste" && g>5) || (bet.overUnder==="sub" && g<5)) win = Math.floor(bet.betAmount*1.3);
+        }
+        if(win>0 && bet.user===userName){ balance+=win; leaderboard[bet.user]=(leaderboard[bet.user]||0)+win; showNotification(`🎉 ${bet.student} a luat ${g} la ${bet.subject}! Ai câștigat ${win} puncte!`, true);}
+      }
+    }
+  });
+  updateBalance(); updateBetHistory(); updateLeaderboard(); saveUserData();
+}
+
+function placeBet(type){
+  const betAmount = parseInt(document.getElementById("betAmountInput").value) || 100;
+  const student = document.getElementById("studentSelect").value;
+  const subject = document.getElementById("subjectSelect").value;
+
+  if(student === userName){ alert("Nu poți paria pe tine!"); return; }
+  if(disabledSubjects[subject]){ alert("Pariurile pentru această materie sunt dezactivate!"); return; }
+
+  if(balance<betAmount){ alert("Nu ai suficiente puncte!"); return; }
+
+  let bet = { type, betAmount, checked:false, user:userName, student, subject };
+  if(type==="nota-fixa") bet.grade = parseInt(document.getElementById("gradeInput").value);
+  else bet.overUnder = document.getElementById("overUnderSelect").value;
+
+  balance -= betAmount; updateBalance();
+  bet.timestamp = new Date().toLocaleString();
+  bets.push(bet); updateBetHistory(); saveUserData();
+  alert("Pariu plasat cu succes! Așteaptă rezultatele.");
+}
+
+function updateBalance(){ document.getElementById("balance").textContent = balance; }
+
+function updateBetHistory(){
+  const list = document.getElementById("betList"); list.innerHTML="";
+  bets.forEach((b,i)=>{
+    const li = document.createElement("li");
+    let desc = `${i+1}. ${b.student} - ${b.subject} - `;
+    desc += b.type==="nota-fixa"?`Nota ${b.grade}`:(b.overUnder==="peste"?"Peste 5":"Sub 5");
+    desc += ` (${b.betAmount}p)`;
+    let result = b.checked ? `<div class="bet-info">${b.student} a primit nota ${b.actualGrade}</div>` : `<div class="bet-info">În așteptarea rezultatului...</div>`;
+    li.innerHTML = `<strong>${desc}</strong><div class="timestamp">${b.timestamp}</div>${result}`;
+    list.appendChild(li);
+  });
+}
+
+function renderBetSection(){
+  const section = document.getElementById("betSection");
+  section.innerHTML = `<h2>Alege tipul de pariu:</h2>
+    <button onclick="selectBetType('nota-fixa')">Pariu pe Notă Fixă</button>
+    <button onclick="selectBetType('peste-sub')">Pariu pe Peste/Sub Notă</button>`;
+}
+
+function selectBetType(type){
+  const section = document.getElementById("betSection");
+  let html = `<h2>${type==='nota-fixa'?'Pariu pe Notă Fixă':'Pariu pe Peste/Sub Notă'}</h2>
+    <select id="studentSelect">`+allStudents.map(s=>`<option value="${s}">${s}</option>`).join('')+`</select>
+    <select id="subjectSelect">
+      <option value="Română">Română</option>
+      <option value="Matematică">Matematică</option>
+      <option value="Fizică">Fizică</option>
+      <option value="Chimie">Chimie</option>
+    </select>`;
+  if(type==="nota-fixa") html += `<input type="number" id="gradeInput" placeholder="Introdu nota" min="1" max="10">
+    <input type="number" id="betAmountInput" placeholder="Suma de pariat" min="10" max="${balance}" value="100">
+    <button onclick="placeBet('${type}')">Pariază</button>`;
+  else html += `<select id="overUnderSelect"><option value="peste">Peste 5</option><option value="sub">Sub 5</option></select>
+    <input type="number" id="betAmountInput" placeholder="Suma de pariat" min="10" max="${balance}" value="100">
+    <button onclick="placeBet('${type}')">Pariază</button>`;
+  html += `<button class="back-button" onclick="renderBetSection()">Înapoi la Meniu</button>`;
+  section.innerHTML = html;
+}
+</script>
+</body>
+</html>

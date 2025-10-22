@@ -1,0 +1,91 @@
+<!DOCTYPE html><html><head>
+<meta charset="utf-8">
+  <title>Logare - Cazinoul 6B</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #1a1a1a, #333);
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    .login-container {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffd700;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1rem;
+      border: 2px solid #ffd700;
+      border-radius: 5px;
+      background: #333;
+      color: white;
+      margin-bottom: 10px;
+      width: 80%;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: #ffd700;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #ffcc00;
+    }
+
+    .error-message {
+      color: #ff4444;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Bine ai venit la Cazinoul 6B!</h1>
+    <p>Introdu numele tău pentru a intra:</p>
+    <input type="text" id="nameInput" placeholder="Introdu numele tău">
+    <button onclick="login()">Intră în Cazinou</button>
+    <p class="error-message" id="errorMessage">Numele introdus nu este valid. Nu ești din clasa a 6B!</p>
+  </div>
+
+  <script>
+    const allowedNames = [
+      "Hrecica Petrisor", "Tomoiaga Cezar", "Itcus Delia", "Burciu Gabriela", "Salvar Rares", "Salvar Calin", " Oniga Adelin","Craciun Claudiu"
+    ];
+
+    function login() {
+      const name = document.getElementById("nameInput").value.trim();
+      const errorMessage = document.getElementById("errorMessage");
+
+      if (allowedNames.includes(name)) {
+        localStorage.setItem("userName", name); // Salvează numele pentru pagina principală
+        window.location.href = "casino.html"; // Redirecționează către pagina principală
+      } else {
+        errorMessage.style.display = "block"; // Afișează mesajul de eroare
+      }
+    }
+  </script>
+
+</body></html>
