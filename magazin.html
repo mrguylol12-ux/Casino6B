@@ -1,306 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <title>Magazin Premium - Scoala pay to win</title>
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #1a1a1a, #333);
-      color: white;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
-    .header {
-      background: rgba(0, 0, 0, 0.8);
-      padding: 1rem;
-      text-align: center;
-      border-bottom: 2px solid #ffd700;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .header h1 {
-      color: #ffd700;
-      margin: 0;
-      font-size: 1.5rem;
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-      position: relative;
-      z-index: 1;
-    }
-    .points-display {
-      background: rgba(255, 215, 0, 0.2);
-      padding: 8px 15px;
-      border-radius: 20px;
-      border: 1px solid #ffd700;
-      font-weight: bold;
-      position: relative;
-      z-index: 1;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-    }
-    .shop-container {
-      display: flex;
-      flex-wrap: wrap;
-      padding: 30px;
-      gap: 30px;
-    }
-    .shop-column {
-      flex: 1;
-      min-width: 300px;
-    }
-    .shop-section {
-      margin-bottom: 40px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 15px;
-      padding: 20px;
-      border: 1px solid #ffd700;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    }
-    .shop-section h2 {
-      color: #ffd700;
-      margin-top: 0;
-      border-bottom: 1px solid #ffd700;
-      padding-bottom: 15px;
-      text-align: center;
-      font-size: 1.3rem;
-    }
-    .item-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 25px;
-      padding: 10px;
-    }
-    .shop-item {
-      background: rgba(255, 215, 0, 0.1);
-      border: 1px solid #ffd700;
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-    .shop-item::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(
-        to bottom right,
-        rgba(255, 215, 0, 0) 0%,
-        rgba(255, 215, 0, 0.1) 50%,
-        rgba(255, 215, 0, 0) 100%
-      );
-      transform: rotate(45deg);
-      opacity: 0;
-      transition: all 0.5s;
-    }
-    .shop-item:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
-    }
-    .shop-item:hover::before {
-      animation: shine 1.5s;
-      opacity: 1;
-    }
-    @keyframes shine {
-      0% { left: -50%; top: -50%; }
-      100% { left: 150%; top: 150%; }
-    }
-    .item-name {
-      flex-grow: 1;
-      margin-bottom: 15px;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-    .item-price {
-      margin-top: auto;
-      font-size: 0.9rem;
-      color: #ffd700;
-      padding: 5px 0;
-    }
-    .buy-button {
-      background: linear-gradient(45deg, #ffd700, #ffcc00);
-      color: #1a1a1a;
-      border: none;
-      border-radius: 8px;
-      padding: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-      font-size: 1rem;
-    }
-    .buy-button::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -60%;
-      width: 50%;
-      height: 200%;
-      background: rgba(255, 255, 255, 0.2);
-      transform: rotate(30deg);
-      transition: all 0.3s;
-    }
-    .buy-button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
-    }
-    .buy-button:hover::after {
-      left: 120%;
-    }
-    .loading-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      color: white;
-      font-size: 1.8rem;
-    }
-    .loading-spinner {
-      border: 5px solid #333;
-      border-top: 5px solid #ffd700;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
-      margin: 30px 0;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .notification {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.9);
-      padding: 30px;
-      border-radius: 15px;
-      border: 2px solid #ffd700;
-      z-index: 1001;
-      text-align: center;
-      max-width: 80%;
-      display: none;
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-    }
-    .checkmark {
-      color: #00ff00;
-      font-size: 4rem;
-      margin-bottom: 20px;
-      animation: bounce 0.8s;
-    }
-    .cross {
-      color: #ff0000;
-      font-size: 4rem;
-      margin-bottom: 20px;
-      animation: bounce 0.8s;
-    }
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-      40% {transform: translateY(-30px);}
-      60% {transform: translateY(-15px);}
-    }
-    .back-button {
-      background: #6200ea;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 25px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      margin: 40px auto;
-      transition: all 0.3s;
-      display: block;
-      max-width: 200px;
-      text-align: center;
-    }
-    .back-button:hover {
-      background: #3700b3;
-      transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(98, 0, 234, 0.5);
-    }
-    footer {
-      background: rgba(0, 0, 0, 0.5);
-      padding: 1rem;
-      text-align: center;
-      border-top: 1px solid #ffd700;
-      margin-top: auto;
-    }
-    .disclaimer {
-      opacity: 0.7;
-      font-size: 0.8rem;
-    }
-    .header::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        90deg,
-        rgba(255, 215, 0, 0) 0%,
-        rgba(255, 215, 0, 0.1) 50%,
-        rgba(255, 215, 0, 0) 100%
-      );
-      animation: headerShine 8s infinite;
-      z-index: 0;
-    }
-    @keyframes headerShine {
-      0% { transform: translateX(-100%); }
-      20% { transform: translateX(100%); }
-      100% { transform: translateX(100%); }
-    }
-    .purchase-history {
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 10px;
-      border: 1px solid #ffd700;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    .purchase-history h3 {
-      color: #ffd700;
-      margin-top: 0;
-      text-align: center;
-    }
-    .purchase-item {
-      padding: 5px 0;
-      border-bottom: 1px dashed rgba(255, 215, 0, 0.3);
-      font-size: 0.9rem;
-    }
-    .purchase-item:last-child {
-      border-bottom: none;
-    }
-    .purchase-time {
-      color: #ffd700;
-      font-size: 0.8rem;
-      opacity: 0.8;
-    }
+    body { font-family: 'Arial', sans-serif; background: linear-gradient(135deg, #1a1a1a, #333); color: white; margin: 0; padding: 0; min-height: 100vh; }
+    .header { background: rgba(0,0,0,0.8); padding: 1rem; text-align: center; border-bottom: 2px solid #ffd700; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
+    .header h1 { color: #ffd700; margin: 0; font-size: 1.5rem; text-shadow: 0 0 10px rgba(255,215,0,0.5); position: relative; z-index: 1; }
+    .points-display { background: rgba(255,215,0,0.2); padding: 8px 15px; border-radius: 20px; border: 1px solid #ffd700; font-weight: bold; position: relative; z-index: 1; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { box-shadow:0 0 0 0 rgba(255,215,0,0.4);} 70% {box-shadow:0 0 0 10px rgba(255,215,0,0);} 100% {box-shadow:0 0 0 0 rgba(255,215,0,0);} }
+    .shop-container { display:flex; flex-wrap:wrap; padding:30px; gap:30px; }
+    .shop-column { flex:1; min-width:300px; }
+    .shop-section { margin-bottom:40px; background: rgba(0,0,0,0.5); border-radius:15px; padding:20px; border:1px solid #ffd700; box-shadow:0 0 20px rgba(0,0,0,0.5); }
+    .shop-section h2 { color:#ffd700; margin-top:0; border-bottom:1px solid #ffd700; padding-bottom:15px; text-align:center; font-size:1.3rem; }
+    .item-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:25px; padding:10px; }
+    .shop-item { background: rgba(255,215,0,0.1); border:1px solid #ffd700; border-radius:12px; padding:20px; display:flex; flex-direction:column; height:100%; transition:all 0.3s; position:relative; overflow:hidden; }
+    .shop-item::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background: linear-gradient(to bottom right, rgba(255,215,0,0)0%, rgba(255,215,0,0.1)50%, rgba(255,215,0,0)100%); transform:rotate(45deg); opacity:0; transition:all 0.5s; }
+    .shop-item:hover { transform: translateY(-8px); box-shadow:0 10px 20px rgba(255,215,0,0.2); }
+    .shop-item:hover::before { animation: shine 1.5s; opacity:1; }
+    @keyframes shine { 0% {left:-50%; top:-50%;} 100% {left:150%; top:150%;} }
+    .item-name { flex-grow:1; margin-bottom:15px; font-weight:bold; font-size:1.1rem; }
+    .item-price { margin-top:auto; font-size:0.9rem; color:#ffd700; padding:5px 0; }
+    .buy-button { background:linear-gradient(45deg,#ffd700,#ffcc00); color:#1a1a1a; border:none; border-radius:8px; padding:10px; font-weight:bold; cursor:pointer; margin-top:15px; transition:all 0.3s; position:relative; overflow:hidden; font-size:1rem; }
+    .buy-button::after { content:''; position:absolute; top:-50%; left:-60%; width:50%; height:200%; background:rgba(255,255,255,0.2); transform:rotate(30deg); transition:all 0.3s; }
+    .buy-button:hover { transform:scale(1.05); box-shadow:0 0 20px rgba(255,215,0,0.7); }
+    .buy-button:hover::after { left:120%; }
   </style>
 </head>
 <body>
@@ -312,273 +36,100 @@
     <div class="shop-column">
       <div class="shop-section">
         <h2>Plusuri</h2>
-        <div class="item-grid">
-          <div class="shop-item">
-            <div class="item-name">Plus la Muzică/Desen</div>
-            <div class="item-price">150 puncte</div>
-            <button class="buy-button" onclick="buyItem('Plus la Muzică/Desen', 150)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Plus la Engleză</div>
-            <div class="item-price">300 puncte</div>
-            <button class="buy-button" onclick="buyItem('Plus la Engleză', 300)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Plus la Română</div>
-            <div class="item-price">400 puncte</div>
-            <button class="buy-button" onclick="buyItem('Plus la Română', 400)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Plus la Franceza</div>
-            <div class="item-price">700 puncte</div>
-            <button class="buy-button" onclick="buyItem('Plus la Franceza', 700)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Plus la Fizica</div>
-            <div class="item-price">720 puncte</div>
-            <button class="buy-button" onclick="buyItem('Plus la Fizica', 720)">Cumpără</button>
-          </div>
-        </div>
+        <div class="item-grid" id="plusuri-grid"></div>
       </div>
       <div class="shop-section">
         <h2>Note</h2>
-        <div class="item-grid">
-          <div class="shop-item">
-            <div class="item-name">Nota 10 la muzică</div>
-            <div class="item-price">200 puncte</div>
-            <button class="buy-button" onclick="buyItem('Nota 10 la muzică', 200)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Nota 10 la optional</div>
-            <div class="item-price">400 puncte</div>
-            <button class="buy-button" onclick="buyItem('Nota 10 la optional', 400)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Nota 9 la franceza</div>
-            <div class="item-price">1500 puncte</div>
-            <button class="buy-button" onclick="buyItem('Nota 9 la franceza', 1500)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Nota 10 la română</div>
-            <div class="item-price">1800 puncte</div>
-            <button class="buy-button" onclick="buyItem('Nota 10 la română', 1800)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Nota 10 la geografie</div>
-            <div class="item-price">GRATUIT</div>
-            <button class="buy-button" onclick="buyItem('Nota 10 la geografie', 0)">Cumpără</button>
-          </div>
-        </div>
+        <div class="item-grid" id="note-grid"></div>
       </div>
     </div>
     <div class="shop-column">
       <div class="shop-section">
         <h2>Alte chestii</h2>
-        <div class="item-grid">
-          <div class="shop-item">
-            <div class="item-name">Combinație Luca</div>
-            <div class="item-price">600 puncte</div>
-            <button class="buy-button" onclick="buyItem('Combinație Luca', 600)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">100 de covrigi de la covrigăria secretă</div>
-            <div class="item-price">1000 puncte</div>
-            <button class="buy-button" onclick="buyItem('100 de covrigi de la covrigăria secretă', 1000)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Parul domnului de sport</div>
-            <div class="item-price">400 puncte</div>
-            <button class="buy-button" onclick="buyItem('Parul domnului de sport', 400)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Papucii lui Calin</div>
-            <div class="item-price">100 puncte</div>
-            <button class="buy-button" onclick="buyItem('Papucii lui Calin', 100)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Mama lui Adelin</div>
-            <div class="item-price">20 puncte</div>
-            <button class="buy-button" onclick="buyItem('Mama lui Adelin', 20)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Lutul Deliei</div>
-            <div class="item-price">400 puncte</div>
-            <button class="buy-button" onclick="buyItem('Lutul Deliei', 400)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Fiica doamnei de sociala</div>
-            <div class="item-price">10000 puncte</div>
-            <button class="buy-button" onclick="buyItem('Fiica doamnei de sociala', 10000)">Cumpără</button>
-          </div>
-        </div>
+        <div class="item-grid" id="alte-grid"></div>
       </div>
       <div class="shop-section">
         <h2>Regi</h2>
-        <div class="item-grid">
-          <div class="shop-item">
-            <div class="item-name">Dildaul lui Matei</div>
-            <div class="item-price">10.000 puncte</div>
-            <button class="buy-button" onclick="buyItem('Dildaul lui Matei', 10000)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Taximetristul Marius</div>
-            <div class="item-price">7.890.000 puncte</div>
-            <button class="buy-button" onclick="buyItem('Taximetristul Marius', 7890000)">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Tocul de hartie al Doamnei Moraru</div>
-            <div class="item-price">10*10^1000 puncte</div>
-            <button class="buy-button" onclick="buyTic10()">Cumpără</button>
-          </div>
-          <div class="shop-item">
-            <div class="item-name">Copii din Beciul lui Petrisor</div>
-            <div class="item-price">430 puncte</div>
-            <button class="buy-button" onclick="buyItem('Copii din Beciul lui Petrisor', 430)">Cumpără</button>
-          </div>
-        </div>
+        <div class="item-grid" id="regi-grid"></div>
       </div>
     </div>
   </div>
-  <button class="back-button" onclick="window.location.href='proiect_cazinou10a/casino.html'">Înapoi la Cazinou</button>
-  <footer>
-    <div class="purchase-history">
-      <h3>Istoric Cumpărături</h3>
-      <div id="historyList"></div>
-    </div>
-    <div class="disclaimer">
-      Realizat de petcakes | Scoala pay to win © 2025
-    </div>
-  </footer>
-  <div class="loading-screen" id="loadingScreen" style="display: none;">
-    <div class="loading-spinner"></div>
-    <p id="loadingText">Obiectul se cumpără...</p>
-  </div>
-  <div class="notification" id="notification">
-    <div id="notificationIcon"></div>
-    <p id="notificationText"></p>
-    <button class="back-button" onclick="closeNotification()">OK</button>
-  </div>
+
   <script>
-const userName = localStorage.getItem("userName") || "Anonim";
-const casinoPoints = localStorage.getItem(`${userName}_balance`);
-if (casinoPoints) localStorage.setItem('userPoints', casinoPoints);
-    // Variabile globale
-    let points = 0;
-    let purchaseHistory = [];
-    // La încărcarea paginii
-    document.addEventListener('DOMContentLoaded', function() {
-      loadPoints();
-      loadHistory();
-      // Actualizează punctele la fiecare secundă
-      setInterval(loadPoints, 1000);
-    });
-    // Încarcă punctele din localStorage (aceeași cheie ca în casino.html)
-    function loadPoints() {
-      const savedPoints = localStorage.getItem('userPoints');
-      points = savedPoints ? parseInt(savedPoints) : 0;
+    // Sold initial
+    let points = parseInt(localStorage.getItem('userPoints') || '1000');
+
+    // Actualizare puncte
+    function updatePoints() {
       document.getElementById('pointsDisplay').textContent = `Puncte: ${points}`;
+      localStorage.setItem('userPoints', points);
     }
-    // Încarcă istoricul din localStorage
-    function loadHistory() {
-      const savedHistory = localStorage.getItem('purchaseHistory');
-      purchaseHistory = savedHistory ? JSON.parse(savedHistory) : [];
-      updateHistoryDisplay();
-    }
-    // Funcția de cumpărare
-    function buyItem(itemName, itemPrice) {
-      // Reîmprospătăm punctele înainte de cumpărare
-      loadPoints();
-      const loadingScreen = document.getElementById('loadingScreen');
-      const loadingText = document.getElementById('loadingText');
-      loadingText.textContent = `${itemName} se cumpără...`;
-      loadingScreen.style.display = 'flex';
-      setTimeout(() => {
-        loadingScreen.style.display = 'none';
-        const notification = document.getElementById('notification');
-        const notificationIcon = document.getElementById('notificationIcon');
-        const notificationText = document.getElementById('notificationText');
-        if (itemPrice <= points || itemPrice === 0) {
-          if (itemPrice > 0) {
-            points -= itemPrice;
-            localStorage.setItem('userPoints', points);
-            document.getElementById('pointsDisplay').textContent = `Puncte: ${points}`;
-          }
-          // Mesaj special pentru antreprenoriala
-          let purchaseMessage = `Ai cumpărat ${itemName}`;
-          if (itemName === '10 la geografie') {
-            purchaseMessage = "Faci proiectul corect și l-ai luat!";
-          }
-          notificationIcon.innerHTML = '<div class="checkmark">✓</div>';
-          notificationText.textContent = purchaseMessage;
-          // Adăugăm în istoric
-          addToHistory(itemName, purchaseMessage);
-        } else {
-          notificationIcon.innerHTML = '<div class="cross">✕</div>';
-          notificationText.textContent = `Mai ai de lucru! Nu ai suficiente puncte pentru ${itemName}.`;
-        }
-        notification.style.display = 'block';
-      }, 1000);
-    }
-    // Adaugă în istoric
-    function addToHistory(itemName, message) {
-      const now = new Date();
-      const purchase = {
-        item: itemName,
-        message: message,
-        time: `${now.toLocaleTimeString()} - ${now.toLocaleDateString()}`
-      };
-      purchaseHistory.unshift(purchase);
-      if (purchaseHistory.length > 10) {
-        purchaseHistory.pop();
-      }
-      localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
-      updateHistoryDisplay();
-    }
-    // Actualizează afișajul istoricului
-    function updateHistoryDisplay() {
-      const historyList = document.getElementById('historyList');
-      historyList.innerHTML = '';
-      if (purchaseHistory.length === 0) {
-        historyList.innerHTML = '<div class="purchase-item">Nicio cumpărătură încă</div>';
-        return;
-      }
-      purchaseHistory.forEach(purchase => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'purchase-item';
-        itemDiv.innerHTML = `
-          <div>${purchase.message}</div>
-          <div class="purchase-time">${purchase.time}</div>
+
+    updatePoints();
+
+    // Lista iteme
+    const items = {
+      plusuri: [
+        {name:"Plus la Muzică/Desen", price:150},
+        {name:"Plus la Engleză", price:300},
+        {name:"Plus la Română", price:400},
+        {name:"Plus la Franceza", price:700},
+        {name:"Plus la Fizica", price:720},
+      ],
+      note: [
+        {name:"Nota 10 la muzică", price:200},
+        {name:"Nota 10 la optional", price:400},
+        {name:"Nota 9 la franceza", price:1500},
+        {name:"Nota 10 la română", price:1800},
+        {name:"Nota 10 la geografie", price:0},
+      ],
+      alte: [
+        {name:"Combinație Luca", price:600},
+        {name:"100 de covrigi de la covrigăria secretă", price:1000},
+        {name:"Parul domnului de sport", price:400},
+        {name:"Papucii lui Calin", price:100},
+        {name:"Mama lui Adelin", price:20},
+        {name:"Lutul Deliei", price:400},
+        {name:"Fiica doamnei de sociala", price:10000},
+      ],
+      regi: [
+        {name:"Dildaul lui Matei", price:10000},
+        {name:"Taximetristul Marius", price:7890000},
+        {name:"Tocul de hartie al Doamnei Moraru", price:1e10000}, // imposibil
+        {name:"Copii din Beciul lui Petrisor", price:430},
+      ]
+    };
+
+    // Funcție generică de creare item
+    function createItemGrid(itemsArray, gridId){
+      const grid = document.getElementById(gridId);
+      itemsArray.forEach(item=>{
+        const div = document.createElement('div');
+        div.className = 'shop-item';
+        div.innerHTML = `
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">${item.price>0 ? item.price+" puncte":"GRATUIT"}</div>
+          <button class="buy-button">Cumpără</button>
         `;
-        historyList.appendChild(itemDiv);
+        const button = div.querySelector('button');
+        button.addEventListener('click',()=>{
+          if(points>=item.price){
+            points -= item.price;
+            updatePoints();
+            alert(`Ai cumpărat ${item.name} pentru ${item.price} puncte!`);
+          } else {
+            alert(`Nu ai suficiente puncte pentru ${item.name}!`);
+          }
+        });
+        grid.appendChild(div);
       });
     }
-    // Funcție specială pentru nota 10 la TIC
-    function buyTic10() {
-      const notification = document.getElementById('notification');
-      const notificationIcon = document.getElementById('notificationIcon');
-      const notificationText = document.getElementById('notificationText');
-      notificationIcon.innerHTML = '<div class="cross">✕</div>';
-      notificationText.textContent = 'Asta e imposibil de cumpărat! 10*10^1000 e prea mult pentru orice om.';
-      notification.style.display = 'block';
-    }
-    // Închide notificarea
-    function closeNotification() {
-      document.getElementById('notification').style.display = 'none';
-    }
-    // Funcții pentru debugging
-    function resetPoints() {
-      points = 1000;
-      localStorage.setItem('userPoints', '1000');
-      document.getElementById('pointsDisplay').textContent = `Puncte: ${points}`;
-      alert('Punctele au fost resetate la 1000!');
-    }
-    function clearHistory() {
-      purchaseHistory = [];
-      localStorage.removeItem('purchaseHistory');
-      updateHistoryDisplay();
-      alert('Istoricul a fost șters!');
-    }
-    console.log('Pentru debugging: resetPoints() și clearHistory()');
+
+    // Populare grid-uri
+    createItemGrid(items.plusuri,'plusuri-grid');
+    createItemGrid(items.note,'note-grid');
+    createItemGrid(items.alte,'alte-grid');
+    createItemGrid(items.regi,'regi-grid');
   </script>
-<center><font size="2">This is the free demo result. For a full version of this website, please go to  <a href="https://www6.waybackmachinedownloader.com/website-downloader-online/scrape-all-files/">Website Downloader</a></font></center></body>
+</body>
 </html>
